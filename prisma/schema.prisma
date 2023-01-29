@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model league_standings {
+  id              Int     @id @default(autoincrement())
+  season          String? @db.VarChar(10)
+  gameweek        Int?
+  position        Int?
+  team            String? @db.VarChar(50)
+  matches_played  Int?
+  wins            Int?
+  draws           Int?
+  losses          Int?
+  goals_for       Int?
+  goals_against   Int?
+  goal_difference Int?
+  points          Int?
+}
