@@ -1,11 +1,47 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-
+import { useState } from "react";
+import Table from "../components/table";
+import type { RouterOutputs } from "../utils/api";
 import { api } from "../utils/api";
 
+type league = RouterOutputs["league"]["getLeague"];
+
 const Home: NextPage = () => {
-    const hello = api.example.hello.useQuery({ text: "from tRPC" });
+    const seasons = api.league.getSeasons
+        .useQuery()
+        .data?.map((obj) => obj.season);
+    const maxSeason = seasons
+        ? (seasons[seasons.length - 1] as string)
+        : "2022-2023";
+    const [season, setSeason] = useState<string>(maxSeason);
+    const gameweeks = api.league.getGameweeks
+        .useQuery({
+            season: season,
+        })
+        .data?.map((obj) => obj.gameweek);
+    const maxGameweek = gameweeks
+        ? (gameweeks[gameweeks.length - 1] as number)
+        : 1;
+    const [gameweek, setGameweek] = useState<number>(maxGameweek);
+    const league = api.league.getLeague.useQuery({
+        season: season,
+        gameweek: Number(gameweek),
+    });
+
+    const getHeaders = (data: league): Array<string> => {
+        if (data[0] === undefined) return [""];
+        return Object.keys(data[0]);
+    };
+
+    const onSeasonChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSeason(event.target.value);
+    };
+
+    const onSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setGameweek(Number(event.target.value));
+    };
 
     return (
         <>
@@ -15,45 +51,49 @@ const Home: NextPage = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
-                <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-                    <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-                        Create{" "}
-                        <span className="text-[hsl(280,100%,70%)]">T3</span> App
-                    </h1>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-                        <Link
-                            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-                            href="https://create.t3.gg/en/usage/first-steps"
-                            target="_blank"
-                        >
-                            <h3 className="text-2xl font-bold">
-                                First Steps →
-                            </h3>
-                            <div className="text-lg">
-                                Just the basics - Everything you need to know to
-                                set up your database and authentication.
-                            </div>
-                        </Link>
-                        <Link
-                            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-                            href="https://create.t3.gg/en/introduction"
-                            target="_blank"
-                        >
-                            <h3 className="text-2xl font-bold">
-                                Documentation →
-                            </h3>
-                            <div className="text-lg">
-                                Learn more about Create T3 App, the libraries it
-                                uses, and how to deploy it.
-                            </div>
-                        </Link>
-                    </div>
-                    <p className="text-2xl text-white">
-                        {hello.data
-                            ? hello.data.greeting
-                            : "Loading tRPC query..."}
-                    </p>
+                <div id="slider-container" className="h-1/5 w-4/5">
+                    <label
+                        htmlFor="season-select"
+                        className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >
+                        Season: {season}
+                    </label>
+                    <select
+                        id="season-select"
+                        className="mb-4 mt-3"
+                        value={season}
+                        onChange={onSeasonChange}
+                    >
+                        {seasons
+                            ? seasons.map((season, index) => {
+                                  return <option key={index}>{season}</option>;
+                              })
+                            : "Data Loading..."}
+                    </select>
+                    <label
+                        htmlFor="default-range"
+                        className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
+                    >
+                        Gameweek: {gameweek}
+                    </label>
+                    <input
+                        id="default-range"
+                        type="range"
+                        min="1"
+                        max={maxGameweek}
+                        value={gameweek}
+                        className="mb-4 mt-3 h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
+                        onChange={onSliderChange}
+                    ></input>
                 </div>
+                {league.data ? (
+                    <Table
+                        tableHeaders={getHeaders(league.data)}
+                        tableRows={league.data}
+                    ></Table>
+                ) : (
+                    "Loading league data..."
+                )}
             </main>
         </>
     );

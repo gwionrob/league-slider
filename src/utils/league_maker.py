@@ -2,7 +2,7 @@
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, types
 
 # minimum season is 1888-1889
 URL = "https://www.worldfootball.net/schedule/eng-premier-league-1888-1889-spieltag/"
@@ -77,9 +77,29 @@ for season in seasons:
         ]
         df.insert(0, "gameweek", gameweek)
         df.insert(0, "season", season)
+        df = df.fillna(method="ffill")
         league_standings.append(df)
 full_standings = pd.concat(league_standings)
 full_standings = full_standings.reset_index(drop=True)
 engine = create_engine("postgresql://gwionrob:asdf@localhost:5432/league_slider")
-full_standings.to_sql("league_standings", engine)
+full_standings.to_sql(
+    "league_standings",
+    engine,
+    index_label="id",
+    dtype={
+        "id": types.INT(),  # type: ignore
+        "season": types.VARCHAR(length=10),  # type: ignore
+        "gameweek": types.INT(),  # type: ignore
+        "position": types.INT(),  # type: ignore
+        "team": types.VARCHAR(length=50),  # type: ignore
+        "matches_played": types.INT(),  # type: ignore
+        "wins": types.INT(),  # type: ignore
+        "draws": types.INT(),  # type: ignore
+        "losses": types.INT(),  # type: ignore
+        "goals_for": types.INT(),  # type: ignore
+        "goals_against": types.INT(),  # type: ignore
+        "goal_difference": types.INT(),  # type: ignore
+        "points": types.INT(),  # type: ignore
+    },
+)
 print("League creation finished, pushed to postgresql db.")

@@ -8,7 +8,7 @@ datasource db {
 }
 
 model league_standings {
-  id              Int     @id @default(autoincrement())
+  id              BigInt  @id @default(autoincrement())
   season          String? @db.VarChar(10)
   gameweek        Int?
   position        Int?
@@ -21,4 +21,6 @@ model league_standings {
   goals_against   Int?
   goal_difference Int?
   points          Int?
+
+  @@index([id], map: "ix_league_standings_id")
 }
