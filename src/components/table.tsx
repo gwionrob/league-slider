@@ -1,85 +1,120 @@
 import type { FunctionComponent } from "react";
 import type { RouterOutputs } from "../utils/api";
-import type { Column } from "react-table";
-import { useTable } from "react-table";
+import Image from "next/image";
+import arsenalBadge from "../../public/badges/arsenal.png";
+import {
+    createColumnHelper,
+    getCoreRowModel,
+    useReactTable,
+    flexRender,
+} from "@tanstack/react-table";
 import React from "react";
 
 type league = RouterOutputs["league"]["getLeague"];
+type row = league[0];
 type Props = {
-    tableHeaders: Array<string>;
     tableRows: league;
 };
 
-const titleCase = (s: string) =>
-    s.replace(/^_*(.)|_+(.)/g, (s, c: string, d: string) =>
-        c ? c.toUpperCase() : " " + d.toUpperCase(),
-    );
+const Table: FunctionComponent<Props> = ({ tableRows }) => {
+    const columnHelper = createColumnHelper<row>();
 
-const Table: FunctionComponent<Props> = ({ tableHeaders, tableRows }) => {
-    const columns = React.useMemo(() => {
-        const cols: Array<Column> = [];
-        for (const header of tableHeaders) {
-            cols.push({
-                Header: titleCase(header),
-                accessor: header,
-            });
-        }
-        return cols;
-    }, [tableHeaders]);
+    const columns = [
+        columnHelper.accessor("position", {
+            header: "Position",
+        }),
+        columnHelper.accessor("team", {
+            header: "Club",
+            cell: (info) => (
+                <div className="flex flex-row">
+                    <div className="mr-3">
+                        <Image
+                            src={arsenalBadge}
+                            alt="temporary badge filler"
+                        ></Image>{" "}
+                    </div>
+                    {info.getValue()}
+                </div>
+            ),
+        }),
+        columnHelper.accessor("matches_played", {
+            header: "Played",
+        }),
+        columnHelper.accessor("wins", {
+            header: "Won",
+        }),
+        columnHelper.accessor("draws", {
+            header: "Drawn",
+        }),
+        columnHelper.accessor("losses", {
+            header: "Lost",
+        }),
+        columnHelper.accessor("goals_for", {
+            header: "GF",
+        }),
+        columnHelper.accessor("goals_against", {
+            header: "GA",
+        }),
+        columnHelper.accessor("goal_difference", {
+            header: "GD",
+        }),
+        columnHelper.accessor("points", {
+            header: "Points",
+        }),
+    ];
 
-    const data = React.useMemo(() => tableRows, [tableRows]);
-
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable({ columns, data });
+    const table = useReactTable({
+        data: tableRows,
+        columns: columns,
+        getCoreRowModel: getCoreRowModel(),
+        initialState: {
+            columnVisibility: { gameweek: false },
+        },
+    });
 
     return (
-        <table {...getTableProps()} style={{ border: "solid 2px blue" }}>
+        <table className="border-collapse border-spacing-y-0 text-lg">
             <thead>
-                {headerGroups.map((headerGroup, index_header_row) => (
+                {table.getHeaderGroups().map((headerGroup) => (
                     <tr
-                        {...headerGroup.getHeaderGroupProps()}
-                        key={index_header_row}
+                        key={headerGroup.id}
+                        className="rounded border-0 border-black"
                     >
-                        {headerGroup.headers.map((column, index_headers) => (
+                        {headerGroup.headers.map((header) => (
                             <th
-                                {...column.getHeaderProps()}
-                                style={{
-                                    borderBottom: "solid 3px red",
-                                    background: "aliceblue",
-                                    color: "black",
-                                    fontWeight: "bold",
-                                }}
-                                key={index_headers}
+                                className="bg-gray-50 py-4 px-5 font-mono text-base text-gray-500 first:rounded-tl first:rounded-bl last:rounded-tr last:rounded-br"
+                                key={header.id}
                             >
-                                {column.render("Header")}
+                                {header.isPlaceholder
+                                    ? null
+                                    : flexRender(
+                                          header.column.columnDef.header,
+                                          header.getContext(),
+                                      )}
                             </th>
                         ))}
                     </tr>
                 ))}
             </thead>
-            <tbody {...getTableBodyProps()}>
-                {rows.map((row, index_rows) => {
-                    prepareRow(row);
-                    return (
-                        <tr {...row.getRowProps()} key={index_rows}>
-                            {row.cells.map((cell, index_cell) => {
-                                return (
-                                    <td
-                                        {...cell.getCellProps()}
-                                        style={{
-                                            padding: "10px",
-                                            border: "solid 1px gray",
-                                            background: "papayawhip",
-                                        }}
-                                        key={index_cell}
-                                    >
-                                        {cell.render("Cell")}
-                                    </td>
-                                );
-                            })}
-                        </tr>
-                    );
-                })}
+            <tbody className='before:block before:leading-4 before:text-transparent before:content-["@"]'>
+                {table.getRowModel().rows.map((row) => (
+                    <tr
+                        key={row.id}
+                        className="border-2 border-transparent border-b-black last:border-none"
+                    >
+                        {row.getVisibleCells().map((cell) => (
+                            <td
+                                className="border-transparent bg-gray-50 py-4 text-center font-mono first:rounded-tl first:rounded-bl last:rounded-tr last:rounded-br"
+                                key={cell.id}
+                            >
+                                {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext(),
+                                )}
+                            </td>
+                        ))}
+                    </tr>
+                ))}
             </tbody>
         </table>
     );
