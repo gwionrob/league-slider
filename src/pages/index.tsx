@@ -1,12 +1,8 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Table from "../components/table";
-import type { RouterOutputs } from "../utils/api";
 import { api } from "../utils/api";
-
-type league = RouterOutputs["league"]["getLeague"];
 
 const Home: NextPage = () => {
     const seasons = api.league.getSeasons
@@ -16,21 +12,11 @@ const Home: NextPage = () => {
         ? (seasons[seasons.length - 1] as string)
         : "2022-2023";
     const [season, setSeason] = useState<string>(maxSeason);
-    const gameweeks = api.league.getGameweeks
-        .useQuery({
-            season: season,
-        })
-        .data?.map((obj) => obj.gameweek);
-    const maxGameweek = gameweeks
-        ? (gameweeks[gameweeks.length - 1] as number)
-        : 1;
-    const [gameweek, setGameweek] = useState<number>(maxGameweek);
+    const maxGameweek = api.league.getMaxGameweeks.useQuery({
+        season: season,
+    }).data?._max.gameweek;
+    const [gameweek, setGameweek] = useState<number>(1);
     const league = api.league.getLeague.useQuery({ season: season });
-
-    const getHeaders = (data: league): Array<string> => {
-        if (data[0] === undefined) return [""];
-        return Object.keys(data[0]);
-    };
 
     const onSeasonChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSeason(event.target.value);
@@ -39,6 +25,12 @@ const Home: NextPage = () => {
     const onSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setGameweek(Number(event.target.value));
     };
+
+    useEffect(() => {
+        if (maxGameweek) {
+            setGameweek(maxGameweek);
+        }
+    }, [maxGameweek]);
 
     return (
         <>
@@ -77,7 +69,7 @@ const Home: NextPage = () => {
                         id="gameweek-range"
                         type="range"
                         min="1"
-                        max={maxGameweek}
+                        max={maxGameweek ? maxGameweek : 1}
                         value={gameweek}
                         className="mb-4 mt-3 h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
                         onChange={onSliderChange}

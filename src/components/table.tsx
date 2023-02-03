@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { FunctionComponent } from "react";
 import type { RouterOutputs } from "../utils/api";
 import Image from "next/image";
@@ -19,53 +20,58 @@ type Props = {
 const Table: FunctionComponent<Props> = ({ tableRows }) => {
     const columnHelper = createColumnHelper<row>();
 
-    const columns = [
-        columnHelper.accessor("position", {
-            header: "Position",
-        }),
-        columnHelper.accessor("team", {
-            header: "Club",
-            cell: (info) => (
-                <div className="flex flex-row">
-                    <div className="mr-3">
-                        <Image
-                            src={arsenalBadge}
-                            alt="temporary badge filler"
-                        ></Image>{" "}
+    const columns = useMemo(
+        () => [
+            columnHelper.accessor("position", {
+                header: "Position",
+            }),
+            columnHelper.accessor("team", {
+                header: "Club",
+                cell: (info) => (
+                    <div className="flex flex-row">
+                        <div className="mr-3">
+                            <Image
+                                src={arsenalBadge}
+                                alt="temporary badge filler"
+                            ></Image>{" "}
+                        </div>
+                        {info.getValue()}
                     </div>
-                    {info.getValue()}
-                </div>
-            ),
-        }),
-        columnHelper.accessor("matches_played", {
-            header: "Played",
-        }),
-        columnHelper.accessor("wins", {
-            header: "Won",
-        }),
-        columnHelper.accessor("draws", {
-            header: "Drawn",
-        }),
-        columnHelper.accessor("losses", {
-            header: "Lost",
-        }),
-        columnHelper.accessor("goals_for", {
-            header: "GF",
-        }),
-        columnHelper.accessor("goals_against", {
-            header: "GA",
-        }),
-        columnHelper.accessor("goal_difference", {
-            header: "GD",
-        }),
-        columnHelper.accessor("points", {
-            header: "Points",
-        }),
-    ];
+                ),
+            }),
+            columnHelper.accessor("matches_played", {
+                header: "Played",
+            }),
+            columnHelper.accessor("wins", {
+                header: "Won",
+            }),
+            columnHelper.accessor("draws", {
+                header: "Drawn",
+            }),
+            columnHelper.accessor("losses", {
+                header: "Lost",
+            }),
+            columnHelper.accessor("goals_for", {
+                header: "GF",
+            }),
+            columnHelper.accessor("goals_against", {
+                header: "GA",
+            }),
+            columnHelper.accessor("goal_difference", {
+                header: "GD",
+            }),
+            columnHelper.accessor("points", {
+                header: "Points",
+            }),
+        ],
+        [columnHelper],
+    );
+
+    const data = useMemo(() => tableRows, [tableRows]);
 
     const table = useReactTable({
-        data: tableRows,
-        columns: columns,
+        data,
+        columns,
         getCoreRowModel: getCoreRowModel(),
         initialState: {
             columnVisibility: { gameweek: false },

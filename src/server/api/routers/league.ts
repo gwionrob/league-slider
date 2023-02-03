@@ -54,6 +54,18 @@ export const leagueRouter = createTRPCRouter({
                 },
             });
         }),
+    getMaxGameweeks: publicProcedure
+        .input(z.object({ season: z.string() }))
+        .query(({ ctx, input }) => {
+            return ctx.prisma.league_standings.aggregate({
+                where: {
+                    season: input.season,
+                },
+                _max: {
+                    gameweek: true,
+                },
+            });
+        }),
     getSeasons: publicProcedure.query(({ ctx }) => {
         return ctx.prisma.league_standings.findMany({
             distinct: ["season"],
