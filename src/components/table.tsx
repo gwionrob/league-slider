@@ -79,7 +79,10 @@ const Table: FunctionComponent<Props> = ({ tableRows }) => {
     });
 
     return (
-        <table className="border-collapse border-spacing-y-0 text-lg">
+        <table
+            id="table"
+            className="border-collapse border-spacing-y-0 text-lg"
+        >
             <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
                     <tr
