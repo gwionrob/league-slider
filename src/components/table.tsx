@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { FunctionComponent } from "react";
 import type { RouterOutputs } from "../utils/api";
+import type { PaginationState } from "@tanstack/react-table";
 import Image from "next/image";
 import arsenalBadge from "../../public/badges/arsenal.png";
 import {
@@ -10,14 +11,23 @@ import {
     flexRender,
 } from "@tanstack/react-table";
 import React from "react";
+import { api } from "../utils/api";
 
 type league = RouterOutputs["league"]["getLeague"];
 type row = league[0];
 type Props = {
-    tableRows: league;
+    season: string;
+    tablePageIndex: number;
+    tablePageSize: number;
+    tablePageCount: number;
 };
 
-const Table: FunctionComponent<Props> = ({ tableRows }) => {
+const Table: FunctionComponent<Props> = ({
+    season,
+    tablePageIndex,
+    tablePageSize,
+    tablePageCount,
+}) => {
     const columnHelper = createColumnHelper<row>();
 
     const columns = useMemo(
@@ -67,15 +77,43 @@ const Table: FunctionComponent<Props> = ({ tableRows }) => {
         [columnHelper],
     );
 
-    const data = useMemo(() => tableRows, [tableRows]);
+    const [{ pageIndex, pageSize }, setPagination] =
+        React.useState<PaginationState>({
+            pageIndex: tablePageIndex,
+            pageSize: tablePageSize,
+        });
+
+    const leagueData = api.league.getLeague.useQuery(
+        {
+            season: season,
+            gameweek: tablePageIndex,
+        },
+        { keepPreviousData: true },
+    );
+
+    const defaultData = useMemo(() => [], []);
+
+    const pagination = React.useMemo(
+        () => ({
+            pageIndex,
+            pageSize,
+        }),
+        [pageIndex, pageSize],
+    );
 
     const table = useReactTable({
-        data,
+        data: leagueData.data ?? defaultData,
         columns,
+        pageCount: tablePageCount,
+        state: {
+            pagination,
+        },
+        onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
         initialState: {
             columnVisibility: { gameweek: false },
         },
+        manualPagination: true,
     });
 
     return (

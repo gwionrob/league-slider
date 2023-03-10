@@ -1,9 +1,8 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import type { ChangeEventHandler } from "react";
-import { useState, useEffect } from "react";
-import Table from "../components/table";
-import Slider from "../components/slider";
+import { useState } from "react";
+import LeagueSlider from "../components/leagueSlider";
 import Config from "../components/config";
 import { api } from "../utils/api";
 
@@ -15,25 +14,10 @@ const Home: NextPage = () => {
         ? (seasons[seasons.length - 1] as string)
         : "2022-2023";
     const [season, setSeason] = useState<string>(maxSeason);
-    const maxGameweek = api.league.getMaxGameweek.useQuery({
-        season: season,
-    }).data?._max.gameweek;
-    const [gameweek, setGameweek] = useState<number>(1);
-    const league = api.league.getLeague.useQuery({ season: season });
 
     const onSeasonChange: ChangeEventHandler<HTMLSelectElement> = (event) => {
         setSeason(event.target.value);
     };
-
-    const onSliderChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-        setGameweek(Number(event.target.value));
-    };
-
-    useEffect(() => {
-        if (maxGameweek) {
-            setGameweek(maxGameweek);
-        }
-    }, [maxGameweek]);
 
     return (
         <>
@@ -52,23 +36,8 @@ const Home: NextPage = () => {
                         seasons={seasons ?? ["Failed to retrieve seasons..."]}
                         onSeasonChange={onSeasonChange}
                     ></Config>
-                    <Slider
-                        max={maxGameweek ?? 1}
-                        value={gameweek}
-                        rangeHandler={onSliderChange}
-                    ></Slider>
                 </div>
-                <div id="table-container">
-                    {league.data ? (
-                        <Table
-                            tableRows={league.data.filter(
-                                (row) => row.gameweek === gameweek,
-                            )}
-                        ></Table>
-                    ) : (
-                        "Loading league data..."
-                    )}
-                </div>
+                <LeagueSlider season={season}></LeagueSlider>
             </main>
         </>
     );

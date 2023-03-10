@@ -4,11 +4,12 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export const leagueRouter = createTRPCRouter({
     getLeague: publicProcedure
-        .input(z.object({ season: z.string() }))
+        .input(z.object({ season: z.string(), gameweek: z.number() }))
         .query(({ ctx, input }) => {
             return ctx.prisma.league_standings.findMany({
                 where: {
                     season: input.season,
+                    gameweek: input.gameweek,
                 },
                 orderBy: [
                     {
