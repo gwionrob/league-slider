@@ -83,6 +83,7 @@ for season in seasons:
         df.insert(0, "season", season)
         df = df.fillna(method="ffill")
         league_standings.append(df)
+
 full_standings = pd.concat(league_standings)
 full_standings = full_standings.reset_index(drop=True)
 engine = create_engine("postgresql://gwionrob:asdf@localhost:5432/league_slider")
