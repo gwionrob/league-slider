@@ -1,6 +1,23 @@
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
+import { updateLeague } from "../../../utils/updateLeague";
+
+type FPLEvent = {
+    id: number;
+    finished: boolean;
+};
+type FPLResponse = {
+    events: Array<FPLEvent>;
+};
+
+const gameweekCheck = async () => {
+    return fetch(
+        "https://fantasy.premierleague.com/api/bootstrap-static/",
+    ).then((response) => {
+        return response.json();
+    });
+};
 
 export const leagueRouter = createTRPCRouter({
     getLeague: publicProcedure
@@ -67,8 +84,19 @@ export const leagueRouter = createTRPCRouter({
                 },
             });
         }),
-    getSeasons: publicProcedure.query(({ ctx }) => {
-        return ctx.prisma.league_standings.findMany({
+    updateLeague: publicProcedure
+        .input(z.object({ gameweek: z.number(), season: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            const gameweekChecks = (await gameweekCheck()) as FPLResponse;
+            const finishedGameweeks = gameweekChecks.events
+                .filter((event: FPLEvent) => event.finished)
+                .map((event: FPLEvent) => event.id);
+            const maxGameweek = Math.max(...finishedGameweeks);
+            if (maxGameweek > input.gameweek)
+                await updateLeague(input.gameweek, input.season);
+        }),
+    getSeasons: publicProcedure.query(async ({ ctx }) => {
+        const seasons = await ctx.prisma.league_standings.findMany({
             distinct: ["season"],
             orderBy: [
                 {
@@ -79,5 +107,6 @@ export const leagueRouter = createTRPCRouter({
                 season: true,
             },
         });
+        return seasons;
     }),
 });

@@ -1,19 +1,26 @@
 import type { NextPage } from "next";
-import Head from "next/head";
 import type { ChangeEventHandler } from "react";
+import type { RouterOutputs } from "../utils/api";
+import Head from "next/head";
 import { useState } from "react";
 import LeagueSlider from "../components/leagueSlider";
 import Config from "../components/config";
 import { api } from "../utils/api";
 
 const Home: NextPage = () => {
-    const seasons = api.league.getSeasons
-        .useQuery()
-        .data?.map((obj) => obj.season);
-    const maxSeason = seasons
-        ? (seasons[seasons.length - 1] as string)
-        : "2022-2023";
-    const [season, setSeason] = useState<string>(maxSeason);
+    const setData = (data: RouterOutputs["league"]["getSeasons"]) => {
+        const newSeasons = data?.map((obj) => obj.season);
+        if (newSeasons) {
+            const newSeason = newSeasons[newSeasons.length - 1] as string;
+            setSeasons(newSeasons);
+            setSeason(newSeason);
+        }
+    };
+    const { isLoading } = api.league.getSeasons.useQuery(undefined, {
+        onSuccess: setData,
+    });
+    const [season, setSeason] = useState<string>("Fetching seasons...");
+    const [seasons, setSeasons] = useState<Array<string | null>>();
 
     const onSeasonChange: ChangeEventHandler<HTMLSelectElement> = (event) => {
         setSeason(event.target.value);
@@ -30,14 +37,25 @@ const Home: NextPage = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#943dff] to-[#7b5dfe]">
-                <div id="options" className="flex h-1/4 w-4/5 flex-col">
+                <div id="options" className="flex min-h-[10vh] w-4/5 flex-col">
                     <Config
                         season={season}
-                        seasons={seasons ?? ["Failed to retrieve seasons..."]}
+                        seasons={seasons ?? [season]}
                         onSeasonChange={onSeasonChange}
                     ></Config>
                 </div>
-                <LeagueSlider season={season}></LeagueSlider>
+                <div
+                    id="league-container"
+                    className="flex min-h-[90vh] w-4/5 flex-col"
+                >
+                    {isLoading ? (
+                        <p className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                            Table Loading...
+                        </p>
+                    ) : (
+                        <LeagueSlider season={season}></LeagueSlider>
+                    )}
+                </div>
             </main>
         </>
     );
