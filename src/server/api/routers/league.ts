@@ -92,8 +92,8 @@ export const leagueRouter = createTRPCRouter({
                 .filter((event: FPLEvent) => event.finished)
                 .map((event: FPLEvent) => event.id);
             const maxGameweek = Math.max(...finishedGameweeks);
-            if (maxGameweek > input.gameweek)
-                await updateLeague(input.gameweek, input.season);
+            // if (maxGameweek > input.gameweek)
+            await updateLeague(input.gameweek, input.season);
         }),
     getSeasons: publicProcedure.query(async ({ ctx }) => {
         const seasons = await ctx.prisma.league_standings.findMany({
