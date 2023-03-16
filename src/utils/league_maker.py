@@ -1,11 +1,22 @@
 """Script to retrieve Premier League Standings for a given Season / Gameweek"""
+import os
+from pathlib import Path
+
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, types
 
+dotenv_path = Path("../../.env")
+load_dotenv(dotenv_path=dotenv_path)
+database_url = os.getenv("DATABASE_URL")
+assert isinstance(database_url, str)
+
 # minimum season is 1888-1889
-URL = """https://www.worldfootball.net/schedule/eng-premier-league-1888-1889-spieltag/"""
+URL = (
+    """https://www.worldfootball.net/schedule/eng-premier-league-1888-1889-spieltag/"""
+)
 
 header = {
     "User-Agent": """Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36""",
@@ -82,7 +93,7 @@ for season in seasons:
 
 full_standings = pd.concat(league_standings)
 full_standings = full_standings.reset_index(drop=True)
-engine = create_engine("postgresql://gwionrob:asdf@localhost:5432/league_slider")
+engine = create_engine(database_url)
 full_standings.to_sql(
     "league_standings",
     engine,
