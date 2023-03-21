@@ -21,7 +21,7 @@ const Config: FunctionComponent<Props> = ({
             </label>
             <select
                 id="season-select"
-                className="mb-4 mt-3"
+                className="mb-4 mt-4"
                 value={season}
                 onChange={onSeasonChange}
             >

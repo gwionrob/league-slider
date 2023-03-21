@@ -3,8 +3,8 @@ import type { ChangeEventHandler } from "react";
 import type { RouterOutputs } from "../utils/api";
 import Head from "next/head";
 import { useState } from "react";
-import LeagueSlider from "../components/leagueSlider";
-import Config from "../components/config";
+import LeagueSlider from "../components/LeagueSlider";
+import Config from "../components/Config";
 import { api } from "../utils/api";
 
 const Home: NextPage = () => {
@@ -42,7 +42,7 @@ const Home: NextPage = () => {
                         season={season}
                         seasons={seasons ?? [season]}
                         onSeasonChange={onSeasonChange}
-                    ></Config>
+                    />
                 </div>
                 <div
                     id="league-container"
@@ -53,7 +53,7 @@ const Home: NextPage = () => {
                             Table Loading...
                         </p>
                     ) : (
-                        <LeagueSlider season={season}></LeagueSlider>
+                        <LeagueSlider season={season} />
                     )}
                 </div>
             </main>

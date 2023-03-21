@@ -1,8 +1,8 @@
 import type { FunctionComponent, ChangeEventHandler } from "react";
 import type { RouterOutputs } from "../utils/api";
 import { useState } from "react";
-import Table from "../components/table";
-import Slider from "../components/slider";
+import Table from "../components/Table";
+import Slider from "../components/Slider";
 import { api } from "../utils/api";
 
 type Props = {
@@ -45,18 +45,18 @@ const LeagueSlider: FunctionComponent<Props> = ({ season }) => {
     }
 
     return (
-        <div id="table-container" className="flex flex-col">
+        <div id="main-container" className="flex flex-col">
             <Slider
                 max={maxGameweek}
                 value={gameweek}
                 rangeHandler={onSliderChange}
-            ></Slider>
+            />
             <Table
                 season={season}
                 tablePageIndex={gameweek}
                 tablePageSize={10}
-                tablePageCount={gameweek}
-            ></Table>
+                tablePageCount={maxGameweek}
+            />
         </div>
     );
 };

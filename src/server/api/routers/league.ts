@@ -84,6 +84,49 @@ export const leagueRouter = createTRPCRouter({
                 },
             });
         }),
+    getLeaguePosition: publicProcedure
+        .input(z.object({ team: z.string(), gameweek: z.number() }))
+        .query(({ ctx, input }) => {
+            if (input.gameweek === 100) {
+                return ctx.prisma.league_standings.findMany({
+                    where: {
+                        team: input.team,
+                    },
+                    distinct: ["season"],
+                    orderBy: [
+                        {
+                            gameweek: "desc",
+                        },
+                        {
+                            season: "asc",
+                        },
+                    ],
+                    select: {
+                        season: true,
+                        position: true,
+                    },
+                });
+            }
+            return ctx.prisma.league_standings.findMany({
+                where: {
+                    team: input.team,
+                    gameweek: input.gameweek,
+                },
+                distinct: ["season"],
+                orderBy: [
+                    {
+                        gameweek: "desc",
+                    },
+                    {
+                        season: "asc",
+                    },
+                ],
+                select: {
+                    season: true,
+                    position: true,
+                },
+            });
+        }),
     updateLeague: publicProcedure
         .input(z.object({ gameweek: z.number(), season: z.string() }))
         .mutation(async ({ ctx, input }) => {
@@ -92,8 +135,8 @@ export const leagueRouter = createTRPCRouter({
                 .filter((event: FPLEvent) => event.finished)
                 .map((event: FPLEvent) => event.id);
             const maxGameweek = Math.max(...finishedGameweeks);
-            // if (maxGameweek > input.gameweek)
-            await updateLeague(input.gameweek, input.season);
+            if (maxGameweek > input.gameweek)
+                await updateLeague(input.gameweek, input.season);
         }),
     getSeasons: publicProcedure.query(async ({ ctx }) => {
         const seasons = await ctx.prisma.league_standings.findMany({
